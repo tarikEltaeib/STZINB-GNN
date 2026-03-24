@@ -1,0 +1,24 @@
+import numpy as np
+class STZINBGNN:
+    def __init__(self, adjacency_matrix):
+        self.adjacency_matrix = adjacency_matrix
+    def forward(self, features):
+        # Aggregate information from neighboring nodes
+        aggregated_features = self.adjacency_matrix @ features
+        # higher/lower aggregated signal affects the chance of zero events
+        zero_prob = 1 / (1 + np.exp(-0.5 * aggregated_features))
+        # Count/intensity part:
+        # if the event is not zero, this estimates its expected magnitude
+        intensity = np.exp(0.8 * aggregated_features)
+        return zero_prob, intensity
+# Graph with 3 regions
+# Region 0 and Region 1 are strongly connected
+adj_matrix = np.array([
+    [1.0, 0.8, 0.0],
+    [0.8, 1.0, 0.0],
+    [0.0, 0.0, 1.0]
+])
+# node features
+features = np.array([0.85, 0.10, 0.05])
+model = STZINBGNN(adj_matrix)
+pi, mu = model.forward(features)
